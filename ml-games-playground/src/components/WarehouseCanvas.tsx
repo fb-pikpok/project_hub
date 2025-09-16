@@ -1,25 +1,45 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Position, WarehouseConfig, Agent } from '@/lib/types';
 
 interface WarehouseCanvasProps {
   config: WarehouseConfig;
   agent: Agent;
-  width: number;
-  height: number;
 }
 
 export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
   config,
   agent,
-  width,
-  height,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dimensions, setDimensions] = useState({ width: 400, height: 400 });
 
-  const cellWidth = width / config.width;
-  const cellHeight = height / config.height;
+  // Update dimensions based on container size
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        // Make it square and leave some padding
+        const size = Math.min(rect.width - 40, 600); // Max 600px, min container width minus padding
+        setDimensions({ width: size, height: size });
+      }
+    };
+
+    updateDimensions();
+
+    // Use ResizeObserver for better performance
+    const resizeObserver = new ResizeObserver(updateDimensions);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  const cellWidth = dimensions.width / config.width;
+  const cellHeight = dimensions.height / config.height;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,7 +49,7 @@ export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
     if (!ctx) return;
 
     // Clear canvas
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
     // Draw grid
     drawGrid(ctx);
@@ -46,7 +66,7 @@ export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
     // Draw agent
     drawAgent(ctx);
 
-  }, [config, agent, width, height, cellWidth, cellHeight]);
+  }, [config, agent, dimensions, cellWidth, cellHeight]);
 
   const drawGrid = (ctx: CanvasRenderingContext2D) => {
     ctx.strokeStyle = '#e5e7eb';
@@ -57,7 +77,7 @@ export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
       const xPos = x * cellWidth;
       ctx.beginPath();
       ctx.moveTo(xPos, 0);
-      ctx.lineTo(xPos, height);
+      ctx.lineTo(xPos, dimensions.height);
       ctx.stroke();
     }
 
@@ -66,7 +86,7 @@ export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
       const yPos = y * cellHeight;
       ctx.beginPath();
       ctx.moveTo(0, yPos);
-      ctx.lineTo(width, yPos);
+      ctx.lineTo(dimensions.width, yPos);
       ctx.stroke();
     }
   };
@@ -135,11 +155,13 @@ export const WarehouseCanvas: React.FC<WarehouseCanvasProps> = ({
   };
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={width}
-      height={height}
-      className="border border-gray-300 rounded-lg shadow-sm"
-    />
+    <div ref={containerRef} className="w-full flex justify-center">
+      <canvas
+        ref={canvasRef}
+        width={dimensions.width}
+        height={dimensions.height}
+        className="border border-gray-300 rounded-lg shadow-sm"
+      />
+    </div>
   );
 };

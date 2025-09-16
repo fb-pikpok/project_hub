@@ -35,18 +35,18 @@ export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
       
       <div className="space-y-6">
         {/* Play/Pause/Reset Controls */}
-        <div className="flex gap-3">
+        <div className="flex gap-2 w-full">
           {!simulationState.isRunning ? (
             <button
               onClick={onPlay}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              className="flex-1 min-h-[2.5rem] bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm sm:text-base font-medium"
             >
               ▶ Play
             </button>
           ) : (
             <button
               onClick={onPause}
-              className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+              className="flex-1 min-h-[2.5rem] bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors text-sm sm:text-base font-medium"
             >
               ⏸ Pause
             </button>
@@ -54,7 +54,7 @@ export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
           
           <button
             onClick={onReset}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            className="flex-1 min-h-[2.5rem] bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm sm:text-base font-medium"
           >
             🔄 Reset
           </button>

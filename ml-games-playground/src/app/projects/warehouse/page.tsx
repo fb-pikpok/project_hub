@@ -131,7 +131,7 @@ export default function WarehousePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
           {/* Controls Area - Left */}
           <div className="lg:col-span-1">
             <WarehouseControls
@@ -142,43 +142,18 @@ export default function WarehousePage() {
               onSpeedChange={handleSpeedChange}
               explorationRate={explorationRate}
             />
-            
-            {/* Information Panel */}
-            <div className="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                How Q-Learning Works
-              </h3>
-              <div className="space-y-3 text-sm text-gray-600">
-                <p>
-                  <strong>Exploration vs Exploitation:</strong> The agent starts by exploring randomly, then gradually learns to exploit better paths.
-                </p>
-                <p>
-                  <strong>Rewards:</strong> +100 for reaching the goal, -1 for each step.
-                </p>
-                <p>
-                  <strong>Learning:</strong> Each action updates the Q-table with expected future rewards.
-                </p>
-                <p>
-                  <strong>Episodes:</strong> New episode begins when goal is reached or max steps exceeded.
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Canvas Area - Center */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 Warehouse Environment
               </h2>
-              <div className="flex justify-center">
-                <WarehouseCanvas
-                  config={DEFAULT_WAREHOUSE_CONFIG}
-                  agent={agent}
-                  width={600}
-                  height={600}
-                />
-              </div>
+              <WarehouseCanvas
+                config={DEFAULT_WAREHOUSE_CONFIG}
+                agent={agent}
+              />
               
               {/* Legend */}
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -203,7 +178,7 @@ export default function WarehousePage() {
           </div>
 
           {/* Statistics Area - Right */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <WarehouseStats learningStats={learningStats} />
             
             {/* Performance Chart */}
@@ -213,9 +188,36 @@ export default function WarehousePage() {
               </h3>
               <PerformanceChart
                 episodeHistory={learningStats.episodeHistory}
-                width={300}
-                height={200}
               />
+            </div>
+          </div>
+        </div>
+
+        {/* How Q-Learning Works - Bottom Section */}
+        <div className="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">
+            How Q-Learning Works
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm text-gray-600">
+            <div>
+              <p>
+                <strong className="text-gray-900">Exploration vs Exploitation:</strong> The agent starts by exploring randomly, then gradually learns to exploit better paths.
+              </p>
+            </div>
+            <div>
+              <p>
+                <strong className="text-gray-900">Rewards:</strong> +100 for reaching the goal, -1 for each step.
+              </p>
+            </div>
+            <div>
+              <p>
+                <strong className="text-gray-900">Learning:</strong> Each action updates the Q-table with expected future rewards.
+              </p>
+            </div>
+            <div>
+              <p>
+                <strong className="text-gray-900">Episodes:</strong> New episode begins when goal is reached or max steps exceeded.
+              </p>
             </div>
           </div>
         </div>

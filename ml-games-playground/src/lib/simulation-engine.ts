@@ -166,7 +166,7 @@ export class SimulationEngine {
   }
 
   private updateLearningStats(steps: number, success: boolean): void {
-    // Add to episode history (keep last 50 episodes for graphing)
+    // Add to episode history (keep all episodes for complete progression tracking)
     const episodeResult: EpisodeResult = {
       episode: this.simulationState.episode,
       steps,
@@ -174,9 +174,7 @@ export class SimulationEngine {
     };
     
     this.learningStats.episodeHistory.push(episodeResult);
-    if (this.learningStats.episodeHistory.length > 50) {
-      this.learningStats.episodeHistory.shift();
-    }
+    // No limit - keep all episodes to show complete learning progression
     
     if (success) {
       this.learningStats.successfulRuns++;
