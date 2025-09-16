@@ -1,5 +1,5 @@
 import { QLearningAgent } from './qlearning';
-import { Agent, SimulationState, WarehouseConfig, QlearningParams, LearningStats } from './types';
+import { Agent, SimulationState, WarehouseConfig, QlearningParams, LearningStats, EpisodeResult } from './types';
 
 export class SimulationEngine {
   private agent: QLearningAgent;
@@ -33,6 +33,7 @@ export class SimulationEngine {
       successfulRuns: 0,
       failedRuns: 0,
       recentSuccessfulEpisodes: [],
+      episodeHistory: [],
     };
     this.earlyEpisodes = [];
   }
@@ -89,6 +90,7 @@ export class SimulationEngine {
       successfulRuns: 0,
       failedRuns: 0,
       recentSuccessfulEpisodes: [],
+      episodeHistory: [],
     };
     this.earlyEpisodes = [];
 
@@ -164,6 +166,18 @@ export class SimulationEngine {
   }
 
   private updateLearningStats(steps: number, success: boolean): void {
+    // Add to episode history (keep last 50 episodes for graphing)
+    const episodeResult: EpisodeResult = {
+      episode: this.simulationState.episode,
+      steps,
+      success,
+    };
+    
+    this.learningStats.episodeHistory.push(episodeResult);
+    if (this.learningStats.episodeHistory.length > 50) {
+      this.learningStats.episodeHistory.shift();
+    }
+    
     if (success) {
       this.learningStats.successfulRuns++;
       
@@ -237,7 +251,11 @@ export class SimulationEngine {
   }
 
   public getLearningStats(): LearningStats {
-    return { ...this.learningStats };
+    return {
+      ...this.learningStats,
+      episodeHistory: [...this.learningStats.episodeHistory],
+      recentSuccessfulEpisodes: [...this.learningStats.recentSuccessfulEpisodes]
+    };
   }
 
   public cleanup(): void {

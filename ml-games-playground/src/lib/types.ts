@@ -38,6 +38,12 @@ export interface SimulationState {
   totalReward: number;
 }
 
+export interface EpisodeResult {
+  episode: number;
+  steps: number;
+  success: boolean;
+}
+
 export interface LearningStats {
   bestRun: {
     episode: number;
@@ -50,6 +56,7 @@ export interface LearningStats {
   successfulRuns: number;
   failedRuns: number;
   recentSuccessfulEpisodes: number[]; // Steps for recent successful episodes
+  episodeHistory: EpisodeResult[]; // Complete episode history for graphing
 }
 
 export type Action = 'up' | 'down' | 'left' | 'right';
