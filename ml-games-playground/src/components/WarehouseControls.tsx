@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import { SimulationState } from '@/lib/types';
+import { SimulationState, LearningStats } from '@/lib/types';
 
 interface WarehouseControlsProps {
   simulationState: SimulationState;
+  learningStats: LearningStats;
   onPlay: () => void;
   onPause: () => void;
   onReset: () => void;
@@ -14,6 +15,7 @@ interface WarehouseControlsProps {
 
 export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
   simulationState,
+  learningStats,
   onPlay,
   onPause,
   onReset,
@@ -28,6 +30,24 @@ export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
     { label: '8x', value: 25 },
     { label: '16x', value: 12 },
   ];
+
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'improving': return '📈';
+      case 'declining': return '📉';
+      case 'stable': return '📊';
+      default: return '🧠';
+    }
+  };
+
+  const getTrendColor = (trend: string) => {
+    switch (trend) {
+      case 'improving': return 'text-green-600';
+      case 'declining': return 'text-red-600';
+      case 'stable': return 'text-blue-600';
+      default: return 'text-gray-600';
+    }
+  };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -76,7 +96,7 @@ export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
           </select>
         </div>
 
-        {/* Statistics */}
+        {/* Current Episode Statistics */}
         <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
           <div>
             <div className="text-sm text-gray-600">Episode</div>
@@ -105,6 +125,64 @@ export const WarehouseControls: React.FC<WarehouseControlsProps> = ({
               {(explorationRate * 100).toFixed(1)}%
             </div>
           </div>
+        </div>
+
+        {/* Learning Performance */}
+        <div className="pt-4 border-t border-gray-200">
+          <h3 className="text-sm font-medium text-gray-700 mb-3">Learning Performance</h3>
+          
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <div className="text-sm text-gray-600">Success Rate</div>
+              <div className="text-lg font-semibold text-gray-900">
+                {learningStats.successfulRuns + learningStats.failedRuns > 0
+                  ? ((learningStats.successfulRuns / (learningStats.successfulRuns + learningStats.failedRuns)) * 100).toFixed(1)
+                  : '0.0'}%
+              </div>
+              <div className="text-xs text-gray-500">
+                {learningStats.successfulRuns}W / {learningStats.failedRuns}L
+              </div>
+            </div>
+            
+            <div>
+              <div className="text-sm text-gray-600">Learning Trend</div>
+              <div className={`text-lg font-semibold ${getTrendColor(learningStats.improvementTrend)}`}>
+                {getTrendIcon(learningStats.improvementTrend)} {learningStats.improvementTrend}
+              </div>
+            </div>
+          </div>
+
+          {learningStats.bestRun && (
+            <div className="bg-green-50 p-3 rounded-md mb-4">
+              <div className="text-sm font-medium text-green-800">🏆 Best Run</div>
+              <div className="text-lg font-bold text-green-900">
+                {learningStats.bestRun.steps} steps
+              </div>
+              <div className="text-xs text-green-700">
+                Episode {learningStats.bestRun.episode} • Reward: {learningStats.bestRun.reward.toFixed(1)}
+              </div>
+            </div>
+          )}
+
+          {learningStats.earlyAverage > 0 && learningStats.recentAverage > 0 && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-600">Early Average</div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {learningStats.earlyAverage.toFixed(1)} steps
+                </div>
+                <div className="text-xs text-gray-500">Episodes 1-10</div>
+              </div>
+              
+              <div>
+                <div className="text-sm text-gray-600">Recent Average</div>
+                <div className="text-lg font-semibold text-gray-900">
+                  {learningStats.recentAverage.toFixed(1)} steps
+                </div>
+                <div className="text-xs text-gray-500">Last 10 successful</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

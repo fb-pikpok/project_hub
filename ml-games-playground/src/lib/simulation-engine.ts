@@ -1,12 +1,14 @@
 import { QLearningAgent } from './qlearning';
-import { Agent, SimulationState, WarehouseConfig, QlearningParams } from './types';
+import { Agent, SimulationState, WarehouseConfig, QlearningParams, LearningStats } from './types';
 
 export class SimulationEngine {
   private agent: QLearningAgent;
   private currentAgent: Agent;
   private config: WarehouseConfig;
   private simulationState: SimulationState;
+  private learningStats: LearningStats;
   private intervalId: NodeJS.Timeout | null = null;
+  private earlyEpisodes: number[] = []; // Store first 10 successful episodes for comparison
 
   constructor(config: WarehouseConfig, params: QlearningParams) {
     this.config = config;
@@ -23,6 +25,16 @@ export class SimulationEngine {
       step: 0,
       totalReward: 0,
     };
+    this.learningStats = {
+      bestRun: null,
+      recentAverage: 0,
+      earlyAverage: 0,
+      improvementTrend: 'learning',
+      successfulRuns: 0,
+      failedRuns: 0,
+      recentSuccessfulEpisodes: [],
+    };
+    this.earlyEpisodes = [];
   }
 
   public start(onUpdate: (agent: Agent, state: SimulationState) => void): void {
@@ -67,6 +79,18 @@ export class SimulationEngine {
       step: 0,
       totalReward: 0,
     };
+
+    // Reset learning stats
+    this.learningStats = {
+      bestRun: null,
+      recentAverage: 0,
+      earlyAverage: 0,
+      improvementTrend: 'learning',
+      successfulRuns: 0,
+      failedRuns: 0,
+      recentSuccessfulEpisodes: [],
+    };
+    this.earlyEpisodes = [];
 
     // Reset the Q-learning agent
     this.agent = new QLearningAgent(this.config, {
@@ -120,6 +144,13 @@ export class SimulationEngine {
   }
 
   private completeEpisode(): void {
+    const currentSteps = this.simulationState.step;
+    const reachedGoal = this.currentAgent.position.x === this.config.goal.x &&
+                       this.currentAgent.position.y === this.config.goal.y;
+    
+    // Update learning statistics
+    this.updateLearningStats(currentSteps, reachedGoal);
+    
     // Reset agent to start position
     this.currentAgent.position = { ...this.config.start };
     this.currentAgent.previousPosition = { ...this.config.start };
@@ -130,6 +161,64 @@ export class SimulationEngine {
     
     // Decay exploration rate
     this.agent.decayExploration();
+  }
+
+  private updateLearningStats(steps: number, success: boolean): void {
+    if (success) {
+      this.learningStats.successfulRuns++;
+      
+      // Update best run
+      if (!this.learningStats.bestRun || steps < this.learningStats.bestRun.steps) {
+        this.learningStats.bestRun = {
+          episode: this.simulationState.episode,
+          steps,
+          reward: this.simulationState.totalReward,
+        };
+      }
+      
+      // Track early episodes (first 10) for comparison
+      if (this.earlyEpisodes.length < 10) {
+        this.earlyEpisodes.push(steps);
+        this.learningStats.earlyAverage = this.earlyEpisodes.reduce((a, b) => a + b, 0) / this.earlyEpisodes.length;
+      }
+      
+      // Track recent successful episodes (last 10)
+      this.learningStats.recentSuccessfulEpisodes.push(steps);
+      if (this.learningStats.recentSuccessfulEpisodes.length > 10) {
+        this.learningStats.recentSuccessfulEpisodes.shift();
+      }
+      
+      // Calculate recent average
+      if (this.learningStats.recentSuccessfulEpisodes.length > 0) {
+        this.learningStats.recentAverage = this.learningStats.recentSuccessfulEpisodes.reduce((a, b) => a + b, 0) /
+                                          this.learningStats.recentSuccessfulEpisodes.length;
+      }
+      
+      // Determine improvement trend
+      this.updateImprovementTrend();
+    } else {
+      this.learningStats.failedRuns++;
+    }
+  }
+
+  private updateImprovementTrend(): void {
+    // Need at least 5 recent episodes and some early episodes to compare
+    if (this.learningStats.recentSuccessfulEpisodes.length < 5 || this.earlyEpisodes.length < 5) {
+      this.learningStats.improvementTrend = 'learning';
+      return;
+    }
+    
+    const recentAvg = this.learningStats.recentAverage;
+    const earlyAvg = this.learningStats.earlyAverage;
+    const improvementRatio = (earlyAvg - recentAvg) / earlyAvg;
+    
+    if (improvementRatio > 0.15) {
+      this.learningStats.improvementTrend = 'improving';
+    } else if (improvementRatio < -0.15) {
+      this.learningStats.improvementTrend = 'declining';
+    } else {
+      this.learningStats.improvementTrend = 'stable';
+    }
   }
 
   public getCurrentAgent(): Agent {
@@ -145,6 +234,10 @@ export class SimulationEngine {
 
   public getExplorationRate(): number {
     return this.agent.getExplorationRate();
+  }
+
+  public getLearningStats(): LearningStats {
+    return { ...this.learningStats };
   }
 
   public cleanup(): void {

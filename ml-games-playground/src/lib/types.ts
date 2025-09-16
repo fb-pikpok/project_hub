@@ -38,6 +38,20 @@ export interface SimulationState {
   totalReward: number;
 }
 
+export interface LearningStats {
+  bestRun: {
+    episode: number;
+    steps: number;
+    reward: number;
+  } | null;
+  recentAverage: number; // Average steps of last 10 successful episodes
+  earlyAverage: number; // Average steps of episodes 1-10
+  improvementTrend: 'improving' | 'stable' | 'declining' | 'learning';
+  successfulRuns: number;
+  failedRuns: number;
+  recentSuccessfulEpisodes: number[]; // Steps for recent successful episodes
+}
+
 export type Action = 'up' | 'down' | 'left' | 'right';
 
 export interface QlearningParams {

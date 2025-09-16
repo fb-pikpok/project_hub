@@ -6,7 +6,7 @@ import { WarehouseCanvas } from '@/components/WarehouseCanvas';
 import { WarehouseControls } from '@/components/WarehouseControls';
 import { SimulationEngine } from '@/lib/simulation-engine';
 import { DEFAULT_WAREHOUSE_CONFIG, DEFAULT_QLEARNING_PARAMS } from '@/lib/warehouse-config';
-import { Agent, SimulationState } from '@/lib/types';
+import { Agent, SimulationState, LearningStats } from '@/lib/types';
 
 export default function WarehousePage() {
   const [agent, setAgent] = useState<Agent>({
@@ -24,6 +24,15 @@ export default function WarehousePage() {
   });
 
   const [explorationRate, setExplorationRate] = useState<number>(1.0);
+  const [learningStats, setLearningStats] = useState<LearningStats>({
+    bestRun: null,
+    recentAverage: 0,
+    earlyAverage: 0,
+    improvementTrend: 'learning',
+    successfulRuns: 0,
+    failedRuns: 0,
+    recentSuccessfulEpisodes: [],
+  });
   const simulationEngineRef = useRef<SimulationEngine | null>(null);
   const updateCallbackRef = useRef<((agent: Agent, state: SimulationState) => void) | null>(null);
 
@@ -47,6 +56,7 @@ export default function WarehousePage() {
         setAgent(newAgent);
         setSimulationState(newState);
         setExplorationRate(simulationEngineRef.current!.getExplorationRate());
+        setLearningStats(simulationEngineRef.current!.getLearningStats());
       };
       updateCallbackRef.current = updateCallback;
       simulationEngineRef.current.start(updateCallback);
@@ -80,6 +90,15 @@ export default function WarehousePage() {
         totalReward: 0,
       });
       setExplorationRate(1.0);
+      setLearningStats({
+        bestRun: null,
+        recentAverage: 0,
+        earlyAverage: 0,
+        improvementTrend: 'learning',
+        successfulRuns: 0,
+        failedRuns: 0,
+        recentSuccessfulEpisodes: [],
+      });
     }
   };
 
@@ -150,6 +169,7 @@ export default function WarehousePage() {
           <div className="lg:col-span-1">
             <WarehouseControls
               simulationState={simulationState}
+              learningStats={learningStats}
               onPlay={handlePlay}
               onPause={handlePause}
               onReset={handleReset}
