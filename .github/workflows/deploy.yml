@@ -39,8 +39,6 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ${{ github.event.repository.name }}
         run: npm run build
 
-      - name: Export static site
-        run: npx next export --out out
 
       - name: Add .nojekyll
         run: mkdir -p out && echo > out/.nojekyll
